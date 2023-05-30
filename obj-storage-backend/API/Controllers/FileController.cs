@@ -31,5 +31,23 @@ namespace API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpGet]
+        [Route("download/{id}")]
+        [ProducesResponseType(typeof(FileContentResult), 200)]
+        [ProducesResponseType(typeof(string), 500)]
+        public async Task<IActionResult> Download([FromRoute] Guid id)
+        {
+            try
+            {
+                var bytes = await _middlewareService.Download(id);
+                return File(bytes, Helper.GetMimeType("png"), fileDownloadName : "test.png");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
     }
 }

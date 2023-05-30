@@ -1,16 +1,22 @@
 version: '1.0'
 
 services:
-  minio :
-      image: minio/minio
-      ports:
-          - 9000:9000
-          - 9001:9001
-      volumes:
-          - ./volumes/minio:/data
-      environment:
-          MINIO_ROOT_USER: admin
-          MINIO_ROOT_PASSWORD: 123456789
-      command: server --console-address ":9001" /data
-      restart: always
+    minio :
+        image: minio/minio
+        ports:
+            - 9000:9000
+            - 9001:9001
+        volumes:
+            - ./volumes/minio:/data
+        environment:
+            MINIO_ROOT_USER: admin
+            MINIO_ROOT_PASSWORD: 123456789
+        command: server --console-address ":9001" /data
+        restart: always
 
+    mongodb:
+        image: mongo
+        ports:
+          - '27017:27017'
+        volumes:
+          - ./volumes/mongo:/data

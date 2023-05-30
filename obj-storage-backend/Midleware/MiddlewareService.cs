@@ -20,6 +20,27 @@ namespace Midleware
                                        .Build();
         }
 
+        public async Task<byte[]> Download(Guid id)
+        {
+            byte[]? buffer = null; 
+            GetObjectArgs getObjectArgs = new GetObjectArgs().WithBucket(BUCKET)
+                                                        .WithObject(id.ToString())
+                                                        .WithCallbackStream((stream) =>
+                                                        {
+                                                            MemoryStream ms = new();
+                                                            stream.CopyTo(ms);
+                                                            buffer = ms.ToArray();
+                                                        });
+            await _client.GetObjectAsync(getObjectArgs);
+
+            if (buffer == null)
+            {
+                return Array.Empty<byte>();
+            }
+
+            return buffer;
+        }
+
         public async Task<UploadSuccessResponse> Upload(Guid id, IFormFile file)
         {
             var args = new PutObjectArgs().WithBucket(BUCKET)

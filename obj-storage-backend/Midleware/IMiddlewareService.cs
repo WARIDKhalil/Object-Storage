@@ -6,5 +6,6 @@ namespace Midleware
     public interface IMiddlewareService
     {
         Task<UploadSuccessResponse> Upload(Guid id, IFormFile file);
+        Task<byte[]> Download(Guid id);
     }
 }
