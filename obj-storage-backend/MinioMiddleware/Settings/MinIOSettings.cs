@@ -1,4 +1,4 @@
-﻿namespace Midleware
+﻿namespace MinioMiddleware.Settings
 {
     public class MinIOSettings
     {
@@ -15,12 +15,11 @@
         /// <summary>
         /// Password to your account
         /// </summary>
-        public string Password { get; set;}
+        public string Password { get; set; }
 
         /// <summary>
         /// boolean value to enable/disable HTTPS support
         /// </summary>
         public bool SupportHttps { get; set; }
-
     }
 }

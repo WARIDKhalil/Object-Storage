@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Midleware.Responses;
 
-namespace Midleware
+namespace Midleware.Abstractions
 {
     public interface IMiddlewareService
     {

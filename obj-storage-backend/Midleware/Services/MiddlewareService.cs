@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Midleware.Abstractions;
+using Midleware.Helpers;
 using Midleware.Responses;
+using Midleware.Settings;
 using Minio;
 
-namespace Midleware
+namespace Midleware.Services
 {
     public class MiddlewareService : IMiddlewareService
     {
@@ -22,14 +25,12 @@ namespace Midleware
 
         public async Task<byte[]> Download(Guid id)
         {
-            byte[]? buffer = null; 
+            byte[]? buffer = null;
             GetObjectArgs getObjectArgs = new GetObjectArgs().WithBucket(BUCKET)
                                                         .WithObject(id.ToString())
                                                         .WithCallbackStream((stream) =>
                                                         {
-                                                            MemoryStream ms = new();
-                                                            stream.CopyTo(ms);
-                                                            buffer = ms.ToArray();
+                                                           buffer = FileHelper.ExtractBytes(stream);
                                                         });
             await _client.GetObjectAsync(getObjectArgs);
 
@@ -45,12 +46,12 @@ namespace Midleware
         {
             var args = new PutObjectArgs().WithBucket(BUCKET)
                                       .WithObject(id.ToString())
-                                      .WithStreamData(new MemoryStream(Helper.GetBytes(file)))
+                                      .WithStreamData(file.OpenReadStream())
                                       .WithContentType(file.ContentType)
                                       .WithObjectSize(file.Length);
 
             await _client.PutObjectAsync(args);
-            return new UploadSuccessResponse { FileId = id, Message = "File was uploaded successfully" };
+            return new UploadSuccessResponse { FileId = id, Message = "File was uploaded successfully to MinIO" };
         }
 
     }
