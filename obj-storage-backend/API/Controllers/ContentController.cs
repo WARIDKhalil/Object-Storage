@@ -1,8 +1,11 @@
 ﻿using API.Requests;
+using API.Responses;
 using API.Services;
 using Microsoft.AspNetCore.Mvc;
-using MinioMiddleware.Requests;
+using Microsoft.VisualBasic;
 using MinioMiddleware.Responses;
+using MinioMiddleware.Constants;
+using Constants = MinioMiddleware.Constants.Constants;
 
 namespace API.Controllers
 {
@@ -21,7 +24,7 @@ namespace API.Controllers
         [Route("upload")]
         [ProducesResponseType(typeof(UploadContentSuccessResponse), 200)]
         [ProducesResponseType(typeof(string), 500)]
-        public async Task<IActionResult> Upload([FromForm] UploadContentApiRequest request)
+        public async Task<IActionResult> UploadAsync([FromForm] UploadContentApiRequest request)
         {
             try
             {
@@ -34,20 +37,42 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        [Route("download")]
+        [Route("download/{bucket}/{id}")]
         [ProducesResponseType(typeof(FileContentResult), 200)]
         [ProducesResponseType(typeof(string), 500)]
-        public async Task<IActionResult> Download([FromBody] DownloadContentRequest request)
+        public async Task<IActionResult> DownloadAsync([FromRoute] string bucket, [FromRoute] Guid id)
         {
             try
             {
-                DownloadContentSuccessResponse response = await _contentService.DownloadContentAsync(request);
+                DownloadContentSuccessResponse response = await _contentService.DownloadContentAsync(new()
+                {
+                    BucketName = bucket,
+                    ContentId = id
+                });
                 return File(response.Bytes, response.Content.MimeType, fileDownloadName : response.Content.OriginalName);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
+        }
+
+        [HttpGet]
+        [Route("stream/{bucket}/{id}")]
+        public async Task StreamAsync([FromRoute] string bucket, [FromRoute] Guid id)
+        {
+            StreamContentSuccessResponse response = await _contentService.StreamContentAsync(new()
+            {
+                BucketName = bucket,
+                ContentId = id
+            }, Request);
+
+            Response.StatusCode = 206;
+            Response.Headers["Accept-Ranges"] = "bytes";
+            Response.Headers["Content-Range"] = string.Format($" bytes {response.Offset}-{response.ContentSize - 1}/{response.ContentSize}");
+            Response.ContentType = response.MimeType;
+            Stream outputStream = Response.Body;
+            await outputStream.WriteAsync(response.Chunk.AsMemory(0, response.Chunk.Length));
         }
 
     }

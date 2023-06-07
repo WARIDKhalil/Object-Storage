@@ -43,11 +43,21 @@ namespace MinioMiddleware
                                                             buffer = ContentHelper.ExtractBytes(stream);
                                                         });
             await _client.GetObjectAsync(getObjectArgs);
-            if (buffer == null)
-            {
-                return Array.Empty<byte>();
-            }
-            return buffer;
+            return buffer ?? Array.Empty<byte>(); ;
+        }
+
+        public async Task<byte[]> StreamContentAsync(StreamContentRequest request)
+        {
+            byte[]? buffer = null;
+            GetObjectArgs getObjectArgs = new GetObjectArgs().WithBucket(request.BucketName)
+                                                        .WithObject(request.ContentId.ToString())
+                                                        .WithOffsetAndLength(request.Offset, Constants.Constants.CHUNK_SIZE)
+                                                        .WithCallbackStream((stream) =>
+                                                        {
+                                                            buffer = ContentHelper.ExtractBytes(stream);
+                                                        });
+            await _client.GetObjectAsync(getObjectArgs);
+            return buffer ?? Array.Empty<byte>();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Domain.Aggregates.Content;
 
-namespace MinioMiddleware.Responses
+namespace API.Responses
 {
     public class DownloadContentSuccessResponse
     {

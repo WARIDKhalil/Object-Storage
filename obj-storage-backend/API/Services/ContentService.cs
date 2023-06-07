@@ -1,9 +1,9 @@
 ﻿using API.Requests;
+using API.Responses;
 using Domain.Aggregates.Content;
 using Domain.Contracts;
 using MinioMiddleware;
 using MinioMiddleware.Helpers;
-using MinioMiddleware.Requests;
 using MinioMiddleware.Responses;
 
 namespace API.Services
@@ -39,11 +39,33 @@ namespace API.Services
             });
         }
 
-        public async Task<DownloadContentSuccessResponse> DownloadContentAsync(DownloadContentRequest request)
+        public async Task<DownloadContentSuccessResponse> DownloadContentAsync(DownloadContentApiRequest request)
         {
             Content content = await _repository.GetByIdAsync(request.ContentId);
-            byte[] bytes = await _minioService.DownloadContentAsync(request);
+            byte[] bytes = await _minioService.DownloadContentAsync(new()
+            {
+                BucketName = request.BucketName,
+                ContentId = request.ContentId
+            });
             return new() { Content = content, Bytes = bytes };
+        }
+
+        public async Task<StreamContentSuccessResponse> StreamContentAsync(StreamContentApiRequest request, HttpRequest context)
+        {
+            Content content = await _repository.GetByIdAsync(request.ContentId);
+            long offset = 0;
+            if (!string.IsNullOrEmpty(context.Headers["Range"]))
+            {
+                string[] range = context.Headers["Range"].ToString().Split(new char[] { '=', '-' });
+                offset = long.Parse(range[1]);
+            }
+            byte[] chunk = await _minioService.StreamContentAsync(new()
+            {
+                BucketName = request.BucketName,
+                ContentId = request.ContentId,
+                Offset = offset
+            });
+            return new() { Chunk= chunk, ContentSize = content.Size, Offset = offset, MimeType = content.MimeType };
         }
 
     }
