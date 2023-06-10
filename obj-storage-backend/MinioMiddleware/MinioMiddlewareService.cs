@@ -59,5 +59,13 @@ namespace MinioMiddleware
             await _client.GetObjectAsync(getObjectArgs);
             return buffer ?? Array.Empty<byte>();
         }
+
+        public async Task<DeleteContentSuccessResponse> DeleteContentAsync(DeleteContentRequest request)
+        {
+            RemoveObjectArgs removeObjectArgs = new RemoveObjectArgs().WithBucket(request.BucketName)
+                                                                .WithObject(request.ContentId.ToString());
+            await _client.RemoveObjectAsync(removeObjectArgs);
+            return new() { ContentId= request.ContentId, Message = "Content was deleted successfully from MinIO" };
+        }   
     }
 }

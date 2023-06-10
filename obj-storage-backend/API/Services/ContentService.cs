@@ -68,5 +68,15 @@ namespace API.Services
             return new() { Chunk= chunk, ContentSize = content.Size, Offset = offset, MimeType = content.MimeType };
         }
 
+        public async Task DeleteContentAsync(DeleteContentApiRequest request)
+        {
+            await _repository.DeleteByIdAsync(request.ContentId);
+            await _minioService.DeleteContentAsync(new() 
+            { 
+                ContentId = request.ContentId, 
+                BucketName = request.BucketName 
+            });
+        }
+
     }
 }

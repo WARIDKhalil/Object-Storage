@@ -2,10 +2,7 @@
 using API.Responses;
 using API.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
 using MinioMiddleware.Responses;
-using MinioMiddleware.Constants;
-using Constants = MinioMiddleware.Constants.Constants;
 
 namespace API.Controllers
 {
@@ -73,6 +70,27 @@ namespace API.Controllers
             Response.ContentType = response.MimeType;
             Stream outputStream = Response.Body;
             await outputStream.WriteAsync(response.Chunk.AsMemory(0, response.Chunk.Length));
+        }
+
+        [HttpDelete]
+        [Route("{bucket}/{id}")]
+        [ProducesResponseType(typeof(string), 200)]
+        [ProducesResponseType(typeof(string), 500)]
+        public async Task<IActionResult> DeleteAsync([FromRoute] string bucket, [FromRoute] Guid id)
+        {
+            try
+            {
+                await _contentService.DeleteContentAsync(new()
+                {
+                    BucketName = bucket,
+                    ContentId = id
+                });
+                return Ok($"Content of Id : {id} was successfully deleted");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
     }

@@ -24,5 +24,10 @@ namespace Infrastructure.Repositories
         {
             return await _collection.Find<T>(x => x.Id == id).FirstOrDefaultAsync<T>();
         }
+
+        public async Task DeleteByIdAsync(Guid id)
+        {
+            await _collection.DeleteOneAsync<T>(x => x.Id == id);
+        }
     }
 }
